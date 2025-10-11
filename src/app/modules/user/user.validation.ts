@@ -8,7 +8,7 @@ const createPatientSchema = z.object({
     email: z.string({
       message: "Email Is Required ",
     }),
-    address: z.string().optional,
+    address: z.string().optional(),
   }),
 });
 
