@@ -1,4 +1,4 @@
-import { UserStatus } from "@prisma/client";
+import { UserRole, UserStatus } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -21,24 +21,25 @@ const login = async (payload: { email: string; password: string }) => {
 
   const jwtPayload = {
     email: payload.email,
+    role: user.role,
     password: payload.password,
   };
 
-  if (!config.jwt.accessToken) {
+  if (!config.jwt.accessToken_secret) {
     throw new Error("JWT access token secret is not defined in config.");
   }
-  if (!config.jwt.refreshToken) {
+  if (!config.jwt.refreshToken_secret) {
     throw new Error("JWT refresh token secret is not defined in config.");
   }
 
   const accessToken = jwtHelpers.generateToken(
     jwtPayload,
-    config.jwt.accessToken,
+    config.jwt.accessToken_secret,
     config.jwt.accessToken_expiresIn as string
   );
   const refreshToken = jwtHelpers.generateToken(
     jwtPayload,
-    config.jwt.refreshToken,
+    config.jwt.refreshToken_secret,
     config.jwt.refreshToken_expiresIn as string
   );
 
