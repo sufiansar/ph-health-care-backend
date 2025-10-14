@@ -22,7 +22,7 @@ const login = async (payload: { email: string; password: string }) => {
   const jwtPayload = {
     email: payload.email,
     role: user.role,
-    password: payload.password,
+    // password: payload.password,
   };
 
   if (!config.jwt.accessToken_secret) {
