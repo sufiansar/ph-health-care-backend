@@ -1,9 +1,10 @@
 import { UserRole, UserStatus } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import config from "../../../config";
 import { jwtHelpers } from "../../helper/jwtHelper";
+import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status";
 
 const login = async (payload: { email: string; password: string }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -13,10 +14,13 @@ const login = async (payload: { email: string; password: string }) => {
     },
   });
 
-  const ispassword = bcrypt.compare(payload.password, user.password);
+  const ispassword = await bcrypt.compare(payload.password, user.password);
 
   if (!ispassword) {
-    throw new Error("Password is Wrong Please Give Correct Password");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Password is Wrong Please Give Correct Password"
+    );
   }
 
   const jwtPayload = {
@@ -26,10 +30,16 @@ const login = async (payload: { email: string; password: string }) => {
   };
 
   if (!config.jwt.accessToken_secret) {
-    throw new Error("JWT access token secret is not defined in config.");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "JWT access token secret is not defined in config."
+    );
   }
   if (!config.jwt.refreshToken_secret) {
-    throw new Error("JWT refresh token secret is not defined in config.");
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "JWT refresh token secret is not defined in config."
+    );
   }
 
   const accessToken = jwtHelpers.generateToken(

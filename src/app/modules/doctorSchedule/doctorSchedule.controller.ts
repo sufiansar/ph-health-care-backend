@@ -18,6 +18,18 @@ const createDoctorSchedule = catchAsync(async (req, res) => {
   });
 });
 
+const updateDoctorSchedule = catchAsync(async (req, res) => {
+    
+  const result = await DoctorScheduleService.updateDoctorSchedule();
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Doctor Schedule Updated Successfully!!!",
+    data: result,
+  });
+});
+
 export const DoctorScheduleContorller = {
   createDoctorSchedule,
+  updateDoctorSchedule,
 };
