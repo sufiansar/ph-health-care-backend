@@ -50,6 +50,7 @@ model Doctor {
     user User @relation(fields: [email], references: [email])
 
     doctorSchedule DoctorSchedule[]
+    doctorSpecialties DoctorSpecialties[]
 
     @@map("doctors")
 }

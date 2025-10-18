@@ -22,6 +22,9 @@ const createDoctorSchedule = async (
   });
 };
 
+const updateDoctorSchedule = async () => {};
+
 export const DoctorScheduleService = {
   createDoctorSchedule,
+  updateDoctorSchedule,
 };
