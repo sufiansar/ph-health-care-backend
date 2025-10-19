@@ -19,4 +19,5 @@ export default {
     refreshToken_secret: process.env.REFRESHTOKEN_SECRET,
     refreshToken_expiresIn: process.env.REFRESHTOKEN_EXPIRESIN,
   },
+  openRouter_api_key: process.env.OPENROUTER_API_KEY,
 };
