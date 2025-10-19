@@ -31,8 +31,49 @@ const doctorUpdate = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getDoctorById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await DoctorService.getDoctorById(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Doctor fetched successfully!",
+    data: result,
+  });
+});
+
+const aiAgentSuggestionDoctor = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await DoctorService.aiAgentSuggestionDoctor(req.body);
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: " Ai suggestion  successfully!",
+      data: result,
+    });
+  }
+);
+
+const deleteDoctor = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await DoctorService.getDoctorById(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Doctor Deleted successfully!",
+    data: result,
+  });
+});
 
 export const DoctorController = {
   getAllFromDB,
   doctorUpdate,
+  getDoctorById,
+  deleteDoctor,
+  aiAgentSuggestionDoctor,
 };

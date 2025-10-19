@@ -18,10 +18,7 @@ const createPatient = catchAsync(async (req, res) => {
 
 const createAdmin = catchAsync(async (req, res) => {
   const user = req;
-  console.log(user);
-
   const result = await UserService.createAdmin(user);
-  console.log(result);
   sendResponse(res, {
     statusCode: 201,
     success: true,
@@ -32,10 +29,7 @@ const createAdmin = catchAsync(async (req, res) => {
 
 const createDoctor = catchAsync(async (req, res) => {
   const user = req;
-  console.log(user);
   const result = await UserService.createDoctor(user);
-  console.log(result);
-
   sendResponse(res, {
     statusCode: 201,
     success: true,

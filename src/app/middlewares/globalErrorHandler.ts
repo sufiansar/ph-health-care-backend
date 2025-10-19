@@ -24,6 +24,10 @@ const globalErrorHandler = (
       (message = "Authentication failed against database server"),
         (error = err.meta);
     }
+
+    if (error.code === "P2025") {
+      (message = "Required record not found"), (error = err.meta);
+    }
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     (message = "Validation Error"),
       (error = err.message),
