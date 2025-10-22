@@ -63,9 +63,10 @@ const auth = (...roles: string[]) => {
       req.user = user;
 
       if (roles.length && !roles.includes(user.role)) {
-        return res
-          .status(403)
-          .json({ success: false, message: "Insufficient role." });
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to access this route.",
+        });
       }
 
       console.log("req.user:", req.user);
