@@ -1,7 +1,8 @@
-import { AppointmentStatus } from "@prisma/client";
+import { AppointmentStatus, Prisma } from "@prisma/client";
 import ApiError from "../../errors/ApiError";
 import { prisma } from "../../shared/prisma";
 import httpStatus from "http-status";
+import { Ioptions, paginationHelper } from "../../helper/paginationHelpers";
 
 const createReview = async (user: any, reviewData: any) => {
   const isUserExist = await prisma.patient.findUniqueOrThrow({
@@ -61,6 +62,62 @@ const createReview = async (user: any, reviewData: any) => {
   });
 };
 
+const getAllReviews = async (user: any, filters: any, options: Ioptions) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  const { ...filterData } = filters;
+
+  const andConditions: Prisma.ReviewWhereInput[] = [];
+
+  if (Object.keys(filterData).length > 0) {
+    andConditions.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: filterData[key],
+        },
+      })),
+    });
+  }
+
+  const whereConditions: Prisma.ReviewWhereInput =
+    andConditions.length > 0
+      ? {
+          AND: andConditions,
+        }
+      : {};
+
+  const reviews = await prisma.review.findMany({
+    skip,
+    take: limit,
+    where: {
+      AND: whereConditions,
+    },
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+    include: {
+      Doctor: true,
+      Patient: true,
+      Appointment: true,
+    },
+  });
+  const total = await prisma.review.count({
+    where: {
+      AND: whereConditions,
+    },
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: reviews,
+  };
+};
 export const ReviewService = {
   createReview,
+  getAllReviews,
 };

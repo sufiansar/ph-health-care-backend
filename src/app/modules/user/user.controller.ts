@@ -80,6 +80,19 @@ const changeStatus = catchAsync(async (req, res) => {
   });
 });
 
+const updateUser = catchAsync(async (req, res) => {
+  const user = req.user;
+  const userData = req.body;
+  const result = await UserService.updateUser(user, userData);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "User updated Successfully!!!",
+    data: result,
+  });
+});
+
 export const UserController = {
   createPatient,
   createAdmin,
@@ -87,4 +100,5 @@ export const UserController = {
   getAllUser,
   getMe,
   changeStatus,
+  updateUser,
 };

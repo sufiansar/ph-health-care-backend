@@ -1,4 +1,9 @@
-import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
+import {
+  AppointmentStatus,
+  PaymentStatus,
+  Prisma,
+  UserRole,
+} from "@prisma/client";
 import { Ioptions, paginationHelper } from "../../helper/paginationHelpers";
 import { stripe } from "../../helper/stripe";
 import { prisma } from "../../shared/prisma";
@@ -250,9 +255,53 @@ const updateAppointment = async (
   });
 };
 
+const cancelUnpaidAppointment = async () => {
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  const unPaidAppointments = await prisma.appointment.findMany({
+    where: {
+      createdAt: {
+        lte: thirtyMinutesAgo,
+      },
+      paymentStatus: PaymentStatus.UNPAID,
+    },
+  });
+
+  const appointmentsIdToCancel = unPaidAppointments.map(
+    (appointment) => appointment.id
+  );
+
+  await prisma.$transaction(async (tnx) => {
+    await tnx.payment.deleteMany({
+      where: {
+        appointmentId: { in: appointmentsIdToCancel },
+      },
+    });
+    await tnx.appointment.deleteMany({
+      where: {
+        id: { in: appointmentsIdToCancel },
+      },
+    });
+
+    for (const unPaidAppiontment of unPaidAppointments) {
+      await tnx.doctorSchedule.update({
+        where: {
+          doctorId_scheduleId: {
+            doctorId: unPaidAppiontment.doctorId,
+            scheduleId: unPaidAppiontment.scheduleId,
+          },
+        },
+        data: {
+          isBooked: true,
+        },
+      });
+    }
+  });
+};
+
 export const AppointmentService = {
   appointmentCreate,
   getMyAppointments,
   updateAppointment,
+  cancelUnpaidAppointment,
   getAllAppointments,
 };

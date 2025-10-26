@@ -186,6 +186,40 @@ const changeStatus = async (id: string, payload: { status: UserStatus }) => {
   });
   return result;
 };
+
+const updateUser = async (user: any, payload: any) => {
+  const result = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
+  let profileData;
+  if (result?.role === UserRole.ADMIN) {
+    profileData = await prisma.admin.update({
+      where: { email: result.email },
+      data: {
+        ...payload,
+      },
+    });
+  } else if (result?.role === UserRole.DOCTOR) {
+    profileData = await prisma.doctor.update({
+      where: { email: result.email },
+      data: {
+        ...payload,
+      },
+    });
+  } else if (result?.role === UserRole.PATIENT) {
+    profileData = await prisma.patient.update({
+      where: { email: result.email },
+      data: {
+        ...payload,
+      },
+    });
+  }
+
+  return result;
+};
 export const UserService = {
   createPatient,
   createAdmin,
@@ -193,4 +227,5 @@ export const UserService = {
   getAllUser,
   getMe,
   changeStatus,
+  updateUser,
 };
