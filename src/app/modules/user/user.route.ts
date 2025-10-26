@@ -57,5 +57,10 @@ router.patch(
 
   UserController.changeStatus
 );
+router.patch(
+  "/update",
+  auth(...Object.values(UserRole)),
+  UserController.updateUser
+);
 
 export const UserRoute = router;
