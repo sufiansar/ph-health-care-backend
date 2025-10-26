@@ -1,0 +1,40 @@
+
+model PatientHealthData {
+    id String @id @default(uuid())
+    patientId String @unique
+    Patient Patient @relation(fields: [patientId], references: [id])
+    gender Gender
+    dateOfBirth DateTime
+    bloodGroup BloodGroup
+    hasAllergies Boolean @default(false)
+    hasDiabetes Boolean @default(false)
+    height Float @default(0)
+    weight Float @default(0)
+    smokingStatus Boolean? @default(false)
+    dietaryPreferences String?
+    pregnancyStatus Boolean? @default(false)
+    mentalHealthHistory String?
+    immunizationStatus String?
+    hasPastSurgeries Boolean @default(false)
+    recentAnxieties Boolean? @default(false)
+    recentDepressions Boolean? @default(false)
+    maritalStatus maritalStatus? @default(UNMARRIED)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+
+    @@map("patient_health_data")
+
+}
+
+model MedicalReport{
+    id String @id @default(uuid())
+    patientId String
+    Patient Patient @relation(fields: [patientId], references: [id])
+   reportName String
+   reportLink String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("medical_reports")
+}

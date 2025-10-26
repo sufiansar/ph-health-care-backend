@@ -53,9 +53,38 @@ const getAllUser = catchAsync(async (req, res) => {
   });
 });
 
+const getMe = catchAsync(async (req, res) => {
+  const user = req.user;
+  const result = await UserService.getMe(user);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Get My Profile Retrive Successfully!!!",
+
+    data: result,
+  });
+});
+
+const changeStatus = catchAsync(async (req, res) => {
+  const id = req.params.id;
+  const user = req.body;
+  const result = await UserService.changeStatus(id, user);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Status Changed Successfully!!!",
+
+    data: result,
+  });
+});
+
 export const UserController = {
   createPatient,
   createAdmin,
   createDoctor,
   getAllUser,
+  getMe,
+  changeStatus,
 };

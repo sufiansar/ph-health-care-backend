@@ -5,6 +5,7 @@ import sendResponse from "../../shared/sendResponse";
 import httpStatus from "http-status";
 import { paginationableFields } from "../user/user.constent";
 import { PatientService } from "./patient.service";
+import { MedicalReport, Patient, PatientHealthData } from "@prisma/client";
 
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, ["name", "email", "searchTerm"]);
@@ -32,10 +33,10 @@ const getPatientById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updatePatient = catchAsync(async (req: Request, res: Response) => {
-  const patientId = req.params.id;
-  const updateData = req.body;
+  const user = req.user;
+  const payload = req.body;
 
-  const result = await PatientService.updatePatient(patientId, updateData);
+  const result = await PatientService.updatePatient(payload, user);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
