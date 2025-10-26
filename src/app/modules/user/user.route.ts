@@ -8,6 +8,7 @@ import { UserRole } from "@prisma/client";
 const router = Router();
 
 router.get("/", auth(UserRole.ADMIN), UserController.getAllUser);
+router.get("/me", auth(...Object.values(UserRole)), UserController.getMe);
 
 router.post(
   "/patient-create",
@@ -48,6 +49,13 @@ router.post(
     return UserController.createDoctor(req, res, next);
   },
   UserController.createDoctor
+);
+
+router.patch(
+  "/:id/status",
+  auth(UserRole.ADMIN),
+
+  UserController.changeStatus
 );
 
 export const UserRoute = router;

@@ -68,19 +68,59 @@ const getPatientById = async (id: string) => {
 
   return existingPatient;
 };
-const updatePatient = async (id: string, payload: Partial<Patient>) => {
+const updatePatient = async (payload: any, user: any) => {
+  const { medicalReport, patientHealthData, ...patientData } = payload;
   const existingPatient = await prisma.patient.findUniqueOrThrow({
-    where: { id },
-  });
-
-  const updatePatientdata = await prisma.patient.update({
     where: {
-      id: existingPatient?.id,
+      email: user.email,
+      isDeleted: false,
     },
-    data: payload,
   });
 
-  return updatePatientdata;
+  return await prisma.$transaction(async (tnx) => {
+    await tnx.patient.update({
+      where: {
+        id: existingPatient.id,
+      },
+      data: {
+        ...patientData,
+      },
+    });
+
+    if (patientHealthData) {
+      await tnx.patientHealthData.upsert({
+        where: {
+          patientId: existingPatient.id,
+        },
+        update: patientHealthData,
+
+        create: {
+          ...patientHealthData,
+          patientId: existingPatient.id,
+        },
+      });
+    }
+
+    if (medicalReport) {
+      await tnx.medicalReport.create({
+        data: {
+          ...medicalReport,
+          patientId: existingPatient.id,
+        },
+      });
+    }
+
+    const result = await tnx.patient.findUnique({
+      where: {
+        id: existingPatient.id,
+      },
+      include: {
+        PatientHealthData: true,
+        MedicalReport: true,
+      },
+    });
+    return result;
+  });
 };
 
 const deletePatient = async (id: string) => {

@@ -108,6 +108,8 @@ const getMyPrescriptionPatient = async (
     },
     include: {
       doctor: true,
+      patient: true,
+      appointment: true,
     },
   });
   const total = await prisma.prescription.count({
