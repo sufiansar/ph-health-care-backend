@@ -1,11 +1,28 @@
-export const doctorFiterAbleFields = [
-  "email",
+// export const doctorFiterAbleFields = [
+//   "email",
+//   "name",
+//   "gender",
+//   "contactNumber",
+//   "appointmentFee",
+//   "searchTerm",
+//   "specialties",
+// ];
+
+// export const doctorSearchAbleFields = ["name", "email"];
+export const doctorSearchAbleFields: string[] = [
   "name",
-  "gender",
+  "email",
   "contactNumber",
-  "appointmentFee",
-  "searchTerm",
-  "specialties",
+  "address",
+  "qualification",
+  "designation",
 ];
 
-export const doctorSearchAbleFields = ["name", "email"];
+export const doctorFiterAbleFields: string[] = [
+  "searchTerm",
+  "email",
+  "contactNumber",
+  "gender",
+  "appointmentFee",
+  "specialties",
+];

@@ -2,13 +2,18 @@ import { Patient, Prisma } from "@prisma/client";
 import { Ioptions, paginationHelper } from "../../helper/paginationHelpers";
 import { prisma } from "../../shared/prisma";
 import { patientSearchAbleFields } from "./patient.constant";
+import { IPatientFilterRequest } from "./patient.interface";
 
-const getAllFromDB = async (filters: any, options: Ioptions) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(options);
+const getAllFromDB = async (
+  filters: IPatientFilterRequest,
+  options: Ioptions,
+  includeHealthData: boolean = false
+) => {
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filterData } = filters;
 
-  const { searchTerm, ...filterValues } = filters;
-  const andConditions: Prisma.PatientWhereInput[] = [];
+  const andConditions = [];
+
   if (searchTerm) {
     andConditions.push({
       OR: patientSearchAbleFields.map((field) => ({
@@ -20,42 +25,63 @@ const getAllFromDB = async (filters: any, options: Ioptions) => {
     });
   }
 
-  if (Object.keys(filterValues).length > 0) {
+  if (Object.keys(filterData).length > 0) {
     andConditions.push({
-      AND: Object.keys(filterValues).map((key) => ({
-        [key]: {
-          equals: filterValues[key],
-        },
-      })),
+      AND: Object.keys(filterData).map((key) => {
+        return {
+          [key]: {
+            equals: (filterData as any)[key],
+          },
+        };
+      }),
     });
   }
 
+  andConditions.push({
+    isDeleted: false,
+  });
+
   const whereConditions: Prisma.PatientWhereInput =
-    andConditions.length > 0
-      ? {
-          AND: andConditions,
-        }
-      : {};
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  // Conditional include based on parameter
+  const includeClause = includeHealthData
+    ? {
+        medicalReport: true,
+        patientHealthData: true,
+      }
+    : {
+        medicalReport: {
+          select: {
+            id: true,
+            reportName: true,
+            createdAt: true,
+          },
+        },
+      };
 
   const result = await prisma.patient.findMany({
+    where: whereConditions,
     skip,
     take: limit,
-    where: {
-      AND: whereConditions,
-    },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: includeClause,
   });
 
   const total = await prisma.patient.count({
     where: whereConditions,
   });
+
   return {
     meta: {
+      total,
       page,
       limit,
-      total,
     },
     data: result,
   };
@@ -115,8 +141,8 @@ const updatePatient = async (payload: any, user: any) => {
         id: existingPatient.id,
       },
       include: {
-        PatientHealthData: true,
-        MedicalReport: true,
+        patientHealthData: true,
+        medicalReport: true,
       },
     });
     return result;

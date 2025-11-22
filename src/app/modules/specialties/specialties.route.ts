@@ -12,16 +12,13 @@ router.get("/", SpecialtiesController.getAllFromDB);
 router.post(
   "/",
   FileUploader.upload.single("file"),
+  auth(UserRole.ADMIN),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = SpecialtiesValidtaion.create.parse(JSON.parse(req.body.data));
     return SpecialtiesController.inserIntoDB(req, res, next);
   }
 );
 
-router.delete(
-  "/:id",
-  auth(UserRole.ADMIN, UserRole.ADMIN),
-  SpecialtiesController.deleteFromDB
-);
+router.delete("/:id", auth(UserRole.ADMIN), SpecialtiesController.deleteFromDB);
 
 export const SpecialtiesRoutes = router;

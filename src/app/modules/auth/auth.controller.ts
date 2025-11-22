@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { AuthService } from "./auth.service";
@@ -61,6 +62,18 @@ const logout = catchAsync(async (req, res) => {
   });
 });
 
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+
+  const result = await AuthService.changePassword(user, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Password Changed successfully",
+    data: result,
+  });
+});
 const resetPassword = catchAsync(async (req, res) => {
   const oldPassword = req.body.oldPassword;
   const newPassword = req.body.newPassword;
@@ -108,4 +121,5 @@ export const AuthController = {
   resetPassword,
   forgotPassword,
   getMyProfile,
+  changePassword,
 };

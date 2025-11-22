@@ -2,6 +2,7 @@ import { Router } from "express";
 import { AuthController } from "./auth.controller";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
+import { authLimiter } from "../../middlewares/rateLimiter";
 
 const router = Router();
 
@@ -10,7 +11,13 @@ router.get(
   auth(...Object.values(UserRole)),
   AuthController.getMyProfile
 );
-router.post("/login", AuthController.login);
+
+router.post("/login", authLimiter, AuthController.login);
+router.post(
+  "/change-password",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
+  AuthController.changePassword
+);
 router.post("/refresh-token", AuthController.newAccessToken);
 router.post("/logout", AuthController.logout);
 router.post(

@@ -11,9 +11,10 @@ import { AppointmentRoutes } from "../modules/Appointment/appointment.route";
 import { PrescriptionRoutes } from "../modules/prescription/prescription.route";
 import { ReviewRoutes } from "../modules/reviews/review.route";
 import { MetaDataRoutes } from "../modules/metadata/metaData.route";
+import { apiLimiter } from "../middlewares/rateLimiter";
 
 const router = express.Router();
-
+router.use(apiLimiter);
 const moduleRoutes = [
   {
     path: "/user",
