@@ -1,12 +1,14 @@
+import { JwtPayload } from "jsonwebtoken";
 import pick from "../../helper/pick";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { fitersAbleFields, paginationableFields } from "./user.constent";
 import { UserService } from "./user.service";
+import { IAuthUser } from "../../interface";
+import { Request, Response } from "express";
 
 const createPatient = catchAsync(async (req, res) => {
   const user = req;
-
   const result = await UserService.createPatient(user);
   sendResponse(res, {
     statusCode: 201,
@@ -54,7 +56,7 @@ const getAllUser = catchAsync(async (req, res) => {
 });
 
 const getMe = catchAsync(async (req, res) => {
-  const user = req.user;
+  const user = req.user as IAuthUser;
   const result = await UserService.getMe(user);
 
   sendResponse(res, {
@@ -79,16 +81,15 @@ const changeStatus = catchAsync(async (req, res) => {
     data: result,
   });
 });
-
-const updateUser = catchAsync(async (req, res) => {
+const updateMyProfie = catchAsync(async (req, res) => {
   const user = req.user;
-  const userData = req.body;
-  const result = await UserService.updateUser(user, userData);
+
+  const result = await UserService.updateMyProfie(user as IAuthUser, req);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "User updated Successfully!!!",
+    message: "My profile updated!",
     data: result,
   });
 });
@@ -100,5 +101,5 @@ export const UserController = {
   getAllUser,
   getMe,
   changeStatus,
-  updateUser,
+  updateMyProfie,
 };

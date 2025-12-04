@@ -40,12 +40,14 @@ import config from "../../config";
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req.cookies?.accessToken;
+      const token =
+        req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
       if (!token) {
         return res
           .status(401)
           .json({ success: false, message: "Token missing." });
       }
+      
 
       const decoded = jwtHelpers.verifyToken(
         token,

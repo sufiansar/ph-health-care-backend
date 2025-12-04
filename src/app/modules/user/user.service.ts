@@ -347,39 +347,55 @@ const changeStatus = async (id: string, status: UserRole) => {
   return updateUserStatus;
 };
 
-const updateUser = async (user: any, payload: any) => {
-  const result = await prisma.user.findUniqueOrThrow({
+const updateMyProfie = async (user: IAuthUser, req: Request) => {
+  const userInfo = await prisma.user.findUniqueOrThrow({
     where: {
-      email: user.email,
+      email: user?.email,
       status: UserStatus.ACTIVE,
     },
   });
-  let profileData;
-  if (result?.role === UserRole.ADMIN) {
-    profileData = await prisma.admin.update({
-      where: { email: result.email },
-      data: {
-        ...payload,
+
+  const file = req.file;
+  if (file) {
+    const uploadToCloudinary = await FileUploader.uploadToCloudinary(file);
+    req.body.profilePhoto = uploadToCloudinary?.secure_url;
+  }
+
+  let profileInfo;
+
+  if (userInfo.role === UserRole.SUPER_ADMIN) {
+    profileInfo = await prisma.admin.update({
+      where: {
+        email: userInfo.email,
       },
+      data: req.body,
     });
-  } else if (result?.role === UserRole.DOCTOR) {
-    profileData = await prisma.doctor.update({
-      where: { email: result.email },
-      data: {
-        ...payload,
+  } else if (userInfo.role === UserRole.ADMIN) {
+    profileInfo = await prisma.admin.update({
+      where: {
+        email: userInfo.email,
       },
+      data: req.body,
     });
-  } else if (result?.role === UserRole.PATIENT) {
-    profileData = await prisma.patient.update({
-      where: { email: result.email },
-      data: {
-        ...payload,
+  } else if (userInfo.role === UserRole.DOCTOR) {
+    profileInfo = await prisma.doctor.update({
+      where: {
+        email: userInfo.email,
       },
+      data: req.body,
+    });
+  } else if (userInfo.role === UserRole.PATIENT) {
+    profileInfo = await prisma.patient.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
     });
   }
 
-  return result;
+  return { ...profileInfo };
 };
+
 export const UserService = {
   createPatient,
   createAdmin,
@@ -387,5 +403,5 @@ export const UserService = {
   getAllUser,
   getMe,
   changeStatus,
-  updateUser,
+  updateMyProfie,
 };

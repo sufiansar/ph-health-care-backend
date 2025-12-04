@@ -8,13 +8,19 @@ import { Ioptions, paginationHelper } from "../../helper/paginationHelpers";
 const inserIntoDB = async (req: Request) => {
   const file = req.file;
 
+  let iconUrl: string | undefined = undefined;
   if (file) {
     const uploadToCloudinary = await FileUploader.uploadToCloudinary(file);
-    req.body.icon = uploadToCloudinary?.secure_url;
+    iconUrl = uploadToCloudinary?.secure_url;
   }
 
+  const data = {
+    title: req.body.title,
+    icon: iconUrl || "",
+  };
+
   const result = await prisma.specialties.create({
-    data: req.body,
+    data,
   });
 
   return result;

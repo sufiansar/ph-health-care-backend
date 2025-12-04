@@ -7,7 +7,7 @@ import httpStatus from "http-status";
 const createDoctorSchedule = async (
   user: any,
   payload: {
-    schedulesIds: string[];
+    scheduleIds: string[];
   }
 ) => {
   const doctorData = await prisma.doctor.findUniqueOrThrow({
@@ -16,15 +16,22 @@ const createDoctorSchedule = async (
     },
   });
 
-  const doctorScheduleData = payload.schedulesIds.map((scheduleId) => ({
+  const doctorScheduleData = (payload?.scheduleIds || []).map((scheduleId) => ({
     doctorId: doctorData.id,
     scheduleId,
   }));
 
-  return await prisma.doctorSchedule.createMany({
+  if (doctorScheduleData.length === 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "No schedule IDs provided");
+  }
+
+  const result = await prisma.doctorSchedule.createMany({
     data: doctorScheduleData,
   });
+
+  return result;
 };
+
 const getAllDoctorSchedules = async (
   user: any,
   filters: any,
@@ -36,13 +43,6 @@ const getAllDoctorSchedules = async (
   const { ...filterData } = filters;
 
   const andConditions: Prisma.DoctorScheduleWhereInput[] = [];
-
-  if (user.role !== UserRole.ADMIN) {
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      "You are not authorized to access all appointments"
-    );
-  }
 
   if (Object.keys(filterData).length > 0) {
     andConditions.push({

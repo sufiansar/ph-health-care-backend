@@ -10,6 +10,7 @@ import { prisma } from "../../shared/prisma";
 import { v4 as uuidv4 } from "uuid";
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status";
+import { IAuthUser } from "../../interface";
 
 const appointmentCreate = async (user: any, payload: any) => {
   const patientEmail = await prisma.patient.findUniqueOrThrow({
@@ -100,67 +101,73 @@ const appointmentCreate = async (user: any, payload: any) => {
 };
 
 const getMyAppointments = async (
-  user: any,
+  user: IAuthUser,
   filters: any,
   options: Ioptions
 ) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(options);
-
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
   const { ...filterData } = filters;
 
   const andConditions: Prisma.AppointmentWhereInput[] = [];
 
-  if (user.role === UserRole.PATIENT) {
-    andConditions.push({ patient: { email: user.email } });
-  }
-
-  if (user.role === UserRole.DOCTOR) {
-    andConditions.push({ doctor: { email: user.email } });
-  }
-
-  if (Object.keys(filterData).length > 0) {
+  if (user?.role === UserRole.PATIENT) {
     andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: filterData[key],
-        },
-      })),
+      patient: {
+        email: user?.email,
+      },
+    });
+  } else if (user?.role === UserRole.DOCTOR) {
+    andConditions.push({
+      doctor: {
+        email: user?.email,
+      },
     });
   }
 
-  const whereConditions: Prisma.AppointmentWhereInput =
-    andConditions.length > 0
-      ? {
-          AND: andConditions,
-        }
-      : {};
+  if (Object.keys(filterData).length > 0) {
+    const filterConditions = Object.keys(filterData).map((key) => ({
+      [key]: {
+        equals: (filterData as any)[key],
+      },
+    }));
+    andConditions.push(...filterConditions);
+  }
 
-  const appointments = await prisma.appointment.findMany({
+  const whereConditions: Prisma.AppointmentWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const result = await prisma.appointment.findMany({
+    where: whereConditions,
     skip,
     take: limit,
-    where: {
-      AND: whereConditions,
-    },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
     include:
-      user.role === UserRole.DOCTOR ? { patient: true } : { doctor: true },
+      user?.role === UserRole.PATIENT
+        ? { doctor: true, schedule: true, Review: true, prescription: true }
+        : {
+            patient: {
+              include: { medicalReport: true, patientHealthData: true },
+            },
+            schedule: true,
+            prescription: true,
+            Review: true,
+          },
   });
+
   const total = await prisma.appointment.count({
-    where: {
-      AND: whereConditions,
-    },
+    where: whereConditions,
   });
 
   return {
     meta: {
+      total,
       page,
       limit,
-      total,
     },
-    data: appointments,
+    data: result,
   };
 };
 
@@ -255,6 +262,41 @@ const updateAppointment = async (
   });
 };
 
+const changeAppointmentStatus = async (
+  appointmentId: string,
+  status: AppointmentStatus,
+  user: any
+) => {
+  const appointmentData = await prisma.appointment.findUniqueOrThrow({
+    where: {
+      id: appointmentId,
+    },
+    include: {
+      doctor: true,
+    },
+  });
+
+  if (user?.role === UserRole.DOCTOR) {
+    if (!(user.email === appointmentData.doctor.email)) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "This is not your appointment!"
+      );
+    }
+  }
+
+  const result = await prisma.appointment.update({
+    where: {
+      id: appointmentId,
+    },
+    data: {
+      status,
+    },
+  });
+
+  return result;
+};
+
 const cancelUnpaidAppointment = async () => {
   const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
   const unPaidAppointments = await prisma.appointment.findMany({
@@ -304,4 +346,5 @@ export const AppointmentService = {
   updateAppointment,
   cancelUnpaidAppointment,
   getAllAppointments,
+  changeAppointmentStatus,
 };

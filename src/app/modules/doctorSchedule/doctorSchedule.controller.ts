@@ -7,16 +7,16 @@ import { DoctorScheduleService } from "./doctorSchedule.service";
 
 const createDoctorSchedule = catchAsync(async (req, res) => {
   const user = req.user;
-
-  const payload = req.body;
   const result = await DoctorScheduleService.createDoctorSchedule(
     user,
-    payload
+    req.body
   );
+
+  console.log(req.body);
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: "Doctor Schedule created Successfully!!!",
+    message: "Doctor Schedule created successfully!",
     data: result,
   });
 });

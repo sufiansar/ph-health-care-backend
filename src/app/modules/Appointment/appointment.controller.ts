@@ -4,6 +4,8 @@ import sendResponse from "../../shared/sendResponse";
 import { AppointmentService } from "./appointment.service";
 import pick from "../../helper/pick";
 import { paginationableFields } from "../user/user.constent";
+import { appointmentFilterableFields } from "./appoinment.constent";
+import { IAuthUser } from "../../interface";
 
 const appointmentCreate = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
@@ -18,19 +20,22 @@ const appointmentCreate = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyAppointments = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["status", "paymentStatus"]);
-  const options = pick(req.query, paginationableFields);
   const user = req.user;
+  const filters = pick(req.query, ["status", "paymentStatus"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
   const result = await AppointmentService.getMyAppointments(
-    user,
+    user as IAuthUser,
     filters,
     options
   );
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Fetched my appointments successfully!",
-    data: result,
+    message: "My Appointment retrive successfully",
+    data: result.data,
+    meta: result.meta,
   });
 });
 
@@ -64,9 +69,30 @@ const updateAppointment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const changeAppointmentStatus = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const user = req.user;
+
+    const result = await AppointmentService.changeAppointmentStatus(
+      id,
+      status,
+      user as IAuthUser
+    );
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Appointment status changed successfully",
+      data: result,
+    });
+  }
+);
+
 export const AppointmentController = {
   appointmentCreate,
   getMyAppointments,
   updateAppointment,
   getAllAppointments,
+  changeAppointmentStatus,
 };

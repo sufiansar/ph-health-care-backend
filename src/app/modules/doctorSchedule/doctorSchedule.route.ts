@@ -8,7 +8,7 @@ import { DoctorScheduleValidation } from "./doctorSchedule.validation";
 const router = Router();
 router.get(
   "/",
-  auth(UserRole.ADMIN),
+  // auth(UserRole.ADMIN),
   DoctorScheduleContorller.getAllDoctorSchedules
 );
 router.get(

@@ -8,8 +8,7 @@ import cookieParser from "cookie-parser";
 import { PaymentController } from "./app/modules/payment/payment.controller";
 import cron from "node-cron";
 import { AppointmentService } from "./app/modules/Appointment/appointment.service";
-import { date } from "zod";
-import { sanitizeInput } from "./app/middlewares/sanitizeInput";
+// import { sanitizeInput } from "./app/middlewares/sanitizeInput";
 const app: Application = express();
 
 app.post(
@@ -22,6 +21,8 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -29,7 +30,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-app.use(sanitizeInput);
+// app.use(sanitizeInput);
 
 cron.schedule(" * * * * *", () => {
   AppointmentService.cancelUnpaidAppointment();

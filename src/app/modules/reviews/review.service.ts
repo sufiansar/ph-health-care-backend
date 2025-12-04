@@ -54,7 +54,7 @@ const createReview = async (user: any, reviewData: any) => {
         id: appointment.doctorId,
       },
       data: {
-        avgRating: avgRating._avg.rating || 0,
+        averageRating: avgRating._avg.rating || 0,
       },
     });
 

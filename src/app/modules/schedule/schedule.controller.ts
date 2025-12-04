@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import pick from "../../helper/pick";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
@@ -46,8 +47,37 @@ const scheduleDelete = catchAsync(async (req, res) => {
   });
 });
 
+const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, ["startDate", "endDate"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const user = req.user;
+  const result = await ScheduleService.getAllFromDB(filters, options, user);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Schedule fetched successfully!",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
+const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await ScheduleService.getByIdFromDB(id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Schedule retrieval successfully",
+    data: result,
+  });
+});
+
 export const SchedulesController = {
   createSchedule,
   scheduleForDoctor,
   scheduleDelete,
+  getAllFromDB,
+  getByIdFromDB,
 };
