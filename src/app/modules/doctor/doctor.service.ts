@@ -71,6 +71,11 @@ const getAllFromDB = async (filters: any, options: Ioptions) => {
           specialities: true,
         },
       },
+      doctorSchedule: {
+        include: {
+          schedule: true,
+        },
+      },
       Review: true,
     },
   });

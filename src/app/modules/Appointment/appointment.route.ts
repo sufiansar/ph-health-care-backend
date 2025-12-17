@@ -31,4 +31,17 @@ router.patch(
   AppointmentController.changeAppointmentStatus
 );
 
+router.post(
+  "/pay-later",
+  auth(UserRole.PATIENT),
+  validateRequestShema(AppointmentValidation.createAppointment),
+  AppointmentController.createAppointmentWithPayLater
+);
+
+router.post(
+  "/:id/initiate-payment",
+  auth(UserRole.PATIENT),
+  AppointmentController.initiatePayment
+);
+
 export const AppointmentRoutes = router;

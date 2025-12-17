@@ -16,20 +16,31 @@ const createDoctorSchedule = async (
     },
   });
 
-  const doctorScheduleData = (payload?.scheduleIds || []).map((scheduleId) => ({
+  const doctorScheduleData = payload.scheduleIds.map((scheduleId) => ({
     doctorId: doctorData.id,
     scheduleId,
   }));
 
-  if (doctorScheduleData.length === 0) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "No schedule IDs provided");
-  }
-
-  const result = await prisma.doctorSchedule.createMany({
+  // Create all doctor schedules
+  await prisma.doctorSchedule.createMany({
     data: doctorScheduleData,
   });
 
-  return result;
+  // Fetch the created schedules with populated data
+  const createdSchedules = await prisma.doctorSchedule.findMany({
+    where: {
+      doctorId: doctorData.id,
+      scheduleId: {
+        in: payload.scheduleIds,
+      },
+    },
+    include: {
+      schedule: true,
+      doctor: true,
+    },
+  });
+
+  return createdSchedules;
 };
 
 const getAllDoctorSchedules = async (
@@ -72,6 +83,7 @@ const getAllDoctorSchedules = async (
     },
     include: {
       doctor: true,
+      schedule: true,
     },
   });
   const total = await prisma.doctorSchedule.count({
@@ -149,6 +161,7 @@ const getMyDoctorSchedules = async (
     },
     include: {
       doctor: true,
+      schedule: true,
     },
   });
   const total = await prisma.doctorSchedule.count({

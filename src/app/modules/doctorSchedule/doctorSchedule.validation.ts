@@ -1,8 +1,8 @@
-import z from "zod";
+import { z } from "zod";
 
 const createDoctorScheduleSchema = z.object({
   body: z.object({
-    schedulesIds: z.array(z.string()),
+    scheduleIds: z.array(z.string()),
   }),
 });
 

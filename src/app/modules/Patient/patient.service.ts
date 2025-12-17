@@ -149,6 +149,8 @@ const updatePatient = async (payload: any, user: any) => {
   });
 };
 
+
+
 const deletePatient = async (id: string) => {
   const existingPatient = await prisma.patient.findUniqueOrThrow({
     where: { id },
